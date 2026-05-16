@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STIA | Card Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --gold: #B8945E; --bg: #0A0A0A; --border: rgba(184, 148, 94, 0.4); }
+        body { background-color: #050505; color: #E0E0E0; font-family: 'Inter', sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .generator-container { background: #111; border: 1px solid var(--border); border-radius: 12px; padding: 15px; width: 100%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); margin-bottom: 20px; box-sizing: border-box; }
+        .generator-container h2 { margin: 0 0 15px 0; color: #FFF; font-family: 'Oswald', sans-serif; font-size: 1.3rem; text-align: center; }
+        .input-group { margin-bottom: 10px; text-align: right; }
+        .input-group label { display: block; font-size: 0.8rem; color: var(--gold); margin-bottom: 3px; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; background: #1A1A1A; border: 1px solid #333; border-radius: 6px; color: #FFF; font-size: 0.95rem; box-sizing: border-box; }
+        .btn-generate { width: 100%; padding: 14px; background: var(--gold); color: #000; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: 'Oswald', sans-serif; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        #output-image-container { margin-top: 25px; text-align: center; display: none; width: 100%; max-width: 340px; }
+        #output-image-container h3 { color: #25D366; font-size: 1.1rem; margin-bottom: 5px; }
+        #output-image-container p { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; }
+        #final-card-image { max-width: 100%; border: 2px solid var(--gold); border-radius: 14px; }
+        #member-card-wrap { padding: 5px; }
+        .member-card { width: 340px; height: 490px; background: linear-gradient(135deg, #141414 0%, #050505 100%); border: 1px solid var(--border); border-radius: 14px; padding: 22px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; text-align: left; direction: ltr; }
+        .card-header { display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 15px; }
+        .logo-box { width: 110px; height: 110px; display: flex; justify-content: center; align-items: center; }
+        .logo-box img { width: 100%; height: auto; max-height: 110px; object-fit: contain; }
+        .card-grid { display: grid; grid-template-columns: 1fr; gap: 10px; flex-grow: 1; }
+        .info-block { background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border-left: 2px solid var(--gold); }
+        .label { font-size: 0.6rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 2px; }
+        .value { font-size: 0.95rem; font-weight: 700; color: #FFF; }
+        .value-id { font-family: monospace; color: var(--gold); font-size: 1rem; }
+        .clock-block { background: rgba(184, 148, 94, 0.07); border-left-color: #FFF; }
+        .live-time { font-family: monospace; font-size: 0.95rem; color: #FFF; font-weight: 700; }
+        .status-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .tier-text { font-family: 'Oswald', sans-serif; font-size: 1.1rem; text-transform: uppercase; color: var(--gold); }
+        .status-badge { display: flex; align-items: center; gap: 5px; background: rgba(37, 211, 102, 0.1); padding: 5px 12px; border-radius: 20px; color: #25D366; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; }
+        .pulse-dot { width: 7px; height: 7px; background: #25D366; border-radius: 50%; box-shadow: 0 0 6px #25D366; }
+    </style>
+</head>
+<body>
+
+    <div class="generator-container">
+        <h2>STIA Mobile Panel</h2>
+        <div class="input-group">
+            <label>שם המדריך (באנגלית)</label>
+            <input type="text" id="input-name" value="GIL DRUCKER" oninput="updateCard()">
+        </div>
+        <div class="input-group">
+            <label>מספר סידורי (ID)</label>
+            <input type="text" id="input-id" value="STIA-2026-8954" oninput="updateCard()">
+        </div>
+        <div class="input-group">
+            <label>התמחות / קורס</label>
+            <input type="text" id="input-spec" value="CQB & Firearms Instructor" oninput="updateCard()">
+        </div>
+        <div class="input-group">
+            <label>דרגה</label>
+            <select id="input-tier" onchange="updateCard()">
+                <option value="Silver Associate">Silver Associate</option>
+                <option value="Gold Professional">Gold Professional</option>
+                <option value="Senior Instructor">Senior Instructor</option>
+                <option value="Master Instructor">Master Instructor</option>
+            </select>
+        </div>
+        <button class="btn-generate" onclick="generateImageCard()">הפק קובץ תמונה סופי</button>
+    </div>
+
+    <div id="member-card-wrap">
+        <div class="member-card" id="member-card">
+            <div class="card-header">
+                <div class="logo-box">
+                    <img src="logo.png" alt="STIA">
+                </div>
+            </div>
+            <div class="card-grid">
+                <div class="info-block"><div class="label">Operator Name</div><div class="value" id="card-name">GIL DRUCKER</div></div>
+                <div class="info-block"><div class="label">Credential ID</div><div class="value value-id" id="card-id">STIA-2026-8954</div></div>
+                <div class="info-block"><div class="label">Specialty Module</div><div class="value" id="card-spec" style="font-size: 0.85rem; color: #B8945E;">CQB & Firearms Instructor</div></div>
+                <div class="info-block clock-block">
+                    <div class="label" style="color: var(--gold); font-weight: 700;">Verification Timestamp</div>
+                    <div class="live-time" id="live-clock">Securing...</div>
+                </div>
+            </div>
+            <div class="status-row">
+                <div class="tier-text" id="card-tier">Silver Associate</div>
+                <div class="status-badge"><div class="pulse-dot"></div>Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="output-image-container">
+        <h3>הקובץ מוכן!</h3>
+        <p>גע נגיעה ארוכה בתמונה למטה ושמור לגלריה (Save to Photos):</p>
+        <img id="final-card-image" src="" alt="STIA Card Image">
+    </div>
+
+    <script>
+        function updateCard() {
+            document.getElementById('card-name').innerText = document.getElementById('input-name').value.toUpperCase();
+            document.getElementById('card-id').innerText = document.getElementById('input-id').value.toUpperCase();
+            document.getElementById('card-spec').innerText = document.getElementById('input-spec').value;
+            document.getElementById('card-tier').innerText = document.getElementById('input-tier').value;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+        updateClock(); setInterval(updateClock, 1000);
+
+        function generateImageCard() {
+            document.getElementById('output-image-container').style.display = 'none';
+            const card = document.getElementById('member-card');
+            
+            html2canvas(card, {
+                scale: 3,
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#050505"
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const finalImg = document.getElementById('final-card-image');
+                finalImg.src = imgData;
+                document.getElementById('output-image-container').style.display = 'block';
+                finalImg.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+    </script>
+</body>
+</html>
